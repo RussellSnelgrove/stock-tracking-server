@@ -1,24 +1,38 @@
 const express = require('express');
-const cors = require('cors');
+// const { getStock } = require('./controllers/stockController.js');
 
-const testStock = require('./tests/fixtures/XQQ.json');
-
+const { hostUrl, hostPort } = require('./config/config.js');
+const { getStock } = require('./stocks/getStocks.js');
+const logger = require('./utils/logger.js')
 const app = express();
-const port = process.env.PORT || 3000;
-const corsOptions = {
-    origin: ['https://localhost:5173', 'https://localhost:3000'],
-};
+const router = express.Router();
 
-app.use(cors(corsOptions));
+app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Server is Ready');
+app.use((req, res, next) => {
+    console.log('request', req);
+    logger.info(`${req.method} ${req.url}`);
+    logger.info(`${req}`);
+    next();
 });
 
-app.get(('/api/xqq'), (req, res) => {
-    res.json(testStock);
+app.get('/api/stocks', (req, res) => {
+    const stockData = getStock(req.query);
+    res.send(stockData);
+})
+
+
+
+app.listen(hostPort, () => {
+    console.log(`Server at ${hostUrl}:${hostPort}`);
 });
 
-app.listen(port, () => {
-    console.log(`Server at http://localhost:${port}`);
-});
+
+// app.get('/', (req, res) => {
+//     res.send('Server is Ready');
+// });
+
+
+// app.get(('/api/xqq'), (req, res) => {
+//     res.json(testStock);
+// });
