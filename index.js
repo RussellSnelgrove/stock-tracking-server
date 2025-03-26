@@ -5,20 +5,23 @@ const { hostUrl, hostPort } = require('./config/config.js');
 const { getStock } = require('./stocks/getStocks.js');
 const logger = require('./utils/logger.js')
 const app = express();
-const router = express.Router();
 
 app.use(express.json());
 
 app.use((req, res, next) => {
-    console.log('request', req);
-    logger.info(`${req.method} ${req.url}`);
-    logger.info(`${req}`);
+    logger.info(`Request: ${req.method} : ${req.url}`);
     next();
 });
 
-app.get('/api/stocks', (req, res) => {
-    const stockData = getStock(req.query);
-    res.send(stockData);
+// consider writing a wrapper function for api calls
+// https://zellwk.com/blog/async-await-express/
+app.get('/api/stocks', async (req, res) => {
+    try {
+        const stockData = await getStock(req.query);
+        res.send(stockData);
+    } catch (error) {
+        logger.error(`Request: ${req.method} : ${req.url}`);
+    }
 })
 
 

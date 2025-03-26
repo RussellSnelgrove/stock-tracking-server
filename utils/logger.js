@@ -14,7 +14,7 @@ const logger = winston.createLogger({
     transports: [
         new winston.transports.Console(),
         // look into a way to log based on absolute path
-        // new winston.transports.File({ filename: "app.log" })
+        new winston.transports.File({ filename: "app.log" })
     ]
 });
 

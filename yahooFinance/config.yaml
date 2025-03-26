@@ -1,6 +1,6 @@
 {
   url_base: "https://query2.finance.yahoo.com/v8/finance/chart",
-  period_start: 728317800,
+  period_start: 0,
   period_end: 1739815200,
   interval: 1d,
   include_pre_post: true,
