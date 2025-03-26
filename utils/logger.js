@@ -1,3 +1,5 @@
+const path = require("path");
+
 const winston = require("winston");
 
 const { logLevel } = require('../config/config.js');
@@ -13,8 +15,7 @@ const logger = winston.createLogger({
     ),
     transports: [
         new winston.transports.Console(),
-        // look into a way to log based on absolute path
-        new winston.transports.File({ filename: "app.log" })
+        new winston.transports.File({ filename: path.join(__dirname, "../logs", "app.log") })
     ]
 });
 

@@ -21,6 +21,7 @@ app.get('/api/stocks', async (req, res) => {
         res.send(stockData);
     } catch (error) {
         logger.error(`Request: ${req.method} : ${req.url}`);
+        res.send({error: 'something went wrong'});
     }
 })
 
