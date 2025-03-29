@@ -1,12 +1,10 @@
 const path = require("path");
-
 const winston = require("winston");
 
-const { logLevel } = require('../config/config.js');
+const config = require('../config/config.js');
 
-// Logger setup
 const logger = winston.createLogger({
-    level: logLevel,
+    level: config.logLevel,
     format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.printf(({ level, message, timestamp }) => {
@@ -15,8 +13,16 @@ const logger = winston.createLogger({
     ),
     transports: [
         new winston.transports.Console(),
-        new winston.transports.File({ filename: path.join(__dirname, "../logs", "app.log") })
+        new winston.transports.File({ filename: path.join(__dirname, "../logs", "stocks.log") })
     ]
 });
 
-module.exports = logger;
+const methodLogger = async (req, res, next) => {
+    logger.info(`${req.method} ${req.originalUrl} Started`);
+    res.on('finish', () => {
+        logger.info(`${req.method} ${req.originalUrl} Finished - Status: ${res.statusCode}`);
+    });
+    next();
+};
+
+module.exports = { logger, methodLogger };

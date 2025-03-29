@@ -2,7 +2,7 @@ const _ = require('lodash');
 const fs = require('fs').promises;
 
 const config = require('../config/config.js');
-const logger = require('../utils/logger.js')
+const { logger } = require('./logger.js')
 
 const getUrl = async (symbol) => {
     const {
@@ -23,13 +23,9 @@ const logStock = async (symbol, stockObject) => {
     await fs.writeFile(`${config.stocksFolder}${symbol}.json`, jsonString);
 }
 
-
-const getStock = async (query) => {
-    const symbol = query.symbol;
-    logger.info(`Started to gather stock data for: ${symbol}`);
-
-    const url = await getUrl(symbol);
-    console.log('url', url);
+const getStock = async (ticker) => {
+    logger.info(`Started Gathering Data for: ${ticker}`);
+    const url = await getUrl(ticker);
     const result = await fetch(url, {
         method: 'get',
         headers: {
@@ -37,16 +33,15 @@ const getStock = async (query) => {
         },
     })
     const resultObject = await result.json();
-    if (!_.isNil(resultObject?.chart?.error)) {
-        logger.error(`Error with gathering stock data for: ${symbol}`);
-        return { error: 'something ent wrong' }
-    }
 
-    await logStock(symbol, resultObject?.chart?.result);
+    if (!_.isNil(resultObject?.chart?.error)) throw new Error(`Unable to Find Data for Ticker ${ticker.toUpperCase()}`);
 
-    logger.info(`Successfully got stock data for: ${symbol}`);
-    return { sample: 'alrighty' };
+    await logStock(ticker, resultObject.chart.result);
+
+    logger.info(`Successfully got Stock Data for: ${ticker}`);
+    return resultObject.chart.result;
 }
 
-// module.exports = { getStock };
+
+module.exports = { getStock };
 // const xqq = getStock({ symbol: 'XQfQ.TO' });
