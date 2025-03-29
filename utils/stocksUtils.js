@@ -20,7 +20,7 @@ const getUrl = async (symbol) => {
 
 const logStock = async (symbol, stockObject) => {
     const jsonString = JSON.stringify(stockObject, null, 2);
-    await fs.writeFile(`${config.stocksFolder}${symbol}.json`, jsonString);
+    await fs.writeFile(`${config.stocksFolder}${symbol.toUpperCase()}.json`, jsonString);
 }
 
 const getStock = async (ticker) => {
@@ -42,6 +42,4 @@ const getStock = async (ticker) => {
     return resultObject.chart.result;
 }
 
-
 module.exports = { getStock };
-// const xqq = getStock({ symbol: 'XQfQ.TO' });
