@@ -20,7 +20,7 @@ const getUrl = async (symbol) => {
 
 const logStock = async (symbol, stockObject) => {
     const jsonString = JSON.stringify(stockObject, null, 2);
-    await fs.writeFile(`${config.stocksFolder}${symbol.toUpperCase()}.json`, jsonString);
+    await fs.writeFile(`${config.stocksFolder}${symbol}.json`, jsonString);
 }
 
 const getStock = async (ticker) => {
@@ -34,12 +34,34 @@ const getStock = async (ticker) => {
     })
     const resultObject = await result.json();
 
-    if (!_.isNil(resultObject?.chart?.error)) throw new Error(`Unable to Find Data for Ticker ${ticker.toUpperCase()}`);
-
-    await logStock(ticker, resultObject.chart.result);
+    if (!_.isNil(resultObject?.chart?.error)) throw new Error(`Unable to Find Data for Ticker ${ticker}`);
 
     logger.info(`Successfully got Stock Data for: ${ticker}`);
     return resultObject.chart.result;
 }
 
-module.exports = { getStock };
+const getFormattedData = async (data, ticker) => {
+    logger.info(`Started Formatting Data for: ${ticker}`);
+    const result = [];
+    const timeStamps = data.timestamp;
+    const pricingInfo = data.indicators.quote[0];
+    const priceHigh = pricingInfo.high;
+    const priceLow = pricingInfo.low;
+    const priceOpen = pricingInfo.open;
+    const priceClose = pricingInfo.close;
+    for (let i = 0; i < timeStamps.length; i++) {
+        const date = new Date(timeStamps[i] * 1000);
+        result.push({
+            date: date.toISOString().split('T')[0],
+            low: priceLow[i],
+            high: priceHigh[i],
+            open: priceOpen[i],
+            close: priceClose[i]
+        })
+    }
+    await logStock(ticker, result);
+    logger.info(`Finished Formatting Data for: ${ticker}`);
+    return result;
+}
+
+module.exports = { getStock, getFormattedData };

@@ -18,9 +18,9 @@ const logger = winston.createLogger({
 });
 
 const methodLogger = async (req, res, next) => {
-    logger.info(`${req.method} ${req.originalUrl} Started`);
+    logger.info(`${req.method} ${req.originalUrl} Received`);
     res.on('finish', () => {
-        logger.info(`${req.method} ${req.originalUrl} Finished - Status: ${res.statusCode}`);
+        logger.info(`${req.method} ${req.originalUrl} Completed - Status: ${res.statusCode}`);
     });
     next();
 };
