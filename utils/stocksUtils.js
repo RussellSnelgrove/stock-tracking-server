@@ -23,9 +23,14 @@ const logStock = async (symbol, stockObject) => {
     await fs.writeFile(`${config.stocksFolder}${symbol}.json`, jsonString);
 }
 
-const getStock = async (ticker) => {
-    logger.info(`Started Gathering Data for: ${ticker}`);
-    const url = await getUrl(ticker);
+const logMetaData = async (symbol, metaData) => {
+    const jsonString = JSON.stringify(stockObject, null, 2);
+    await fs.writeFile(`${config.stocksFolder}metaData/${symbol}.json`, jsonString);
+}
+
+const getStock = async (ticker, query) => {
+    logger.info(`Started Gathering Data for: ${ticker}, ${JSON.stringify(query)}`);
+    const url = await getUrl(ticker, query);
     const result = await fetch(url, {
         method: 'get',
         headers: {
@@ -64,4 +69,4 @@ const getFormattedData = async (data, ticker) => {
     return result;
 }
 
-module.exports = { getStock, getFormattedData };
+module.exports = { getStock, getFormattedData, logMetaData };
