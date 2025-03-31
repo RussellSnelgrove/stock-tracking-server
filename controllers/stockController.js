@@ -11,7 +11,7 @@ const getStockBySymbol = asyncHandler(async (req, res) => {
     if (_.isNil(req.query.ticker)) throw new Error('Ticker is Required!');
     const stockData = await getStock(ticker, req.query);
     const formattedData = await getFormattedData(stockData[0], ticker);
-    await logMetaData(stockData[0].meta);
+    await logMetaData(ticker, stockData[0].meta);
     res.send({ data: formattedData, meta: stockData[0].meta });
 });
 

@@ -24,7 +24,7 @@ const logStock = async (symbol, stockObject) => {
 }
 
 const logMetaData = async (symbol, metaData) => {
-    const jsonString = JSON.stringify(stockObject, null, 2);
+    const jsonString = JSON.stringify(metaData);
     await fs.writeFile(`${config.stocksFolder}metaData/${symbol}.json`, jsonString);
 }
 
