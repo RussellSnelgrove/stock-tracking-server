@@ -5,7 +5,7 @@ module.exports = {
     stocksFolder: './stockData/',
     stockEndpoint: {
         urlBase: "https://query2.finance.yahoo.com/v8/finance/chart",
-        start: 0,
+        start: '1970-01-01',
         // end: 1739815200, // tmp, look into how to abstract this out
         interval: '1d',
         includePrePost: true,

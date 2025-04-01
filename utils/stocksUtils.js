@@ -1,20 +1,37 @@
 const _ = require('lodash');
 const fs = require('fs').promises;
+const Joi = require('joi');
 
 const config = require('../config/config.js');
 const { logger } = require('./logger.js')
 
-const getUrl = async (symbol) => {
+
+const schema = Joi.object({
+    ticker: Joi.string().pattern(/^[A-Z0-9]{1,5}(\.[A-Z]{1,5})?$/).required(),
+    start: Joi.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    end: Joi.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+});
+
+const validateQuery = async (query) => {
+    await schema.validateAsync(query);
+    // add valid date check
+}
+
+const getUrl = async (symbol, opts) => {
     const {
-        urlBase,
-        start,
-        end = Date.now(),
-        interval,
-        includePrePost,
-        events,
-        lang
-    } = config.stockEndpoint;
-    const url = `${urlBase}/${symbol}?period1=${start}&period2=${end}&interval=${interval}&includePrePost=${includePrePost}&events=${events}&lang=${lang}&region=CA`
+        urlBase = config.stockEndpoint.urlBase,
+        start = config.stockEndpoint.start,
+        end = new Date().toLocaleDateString('en-CA'),
+        interval = config.stockEndpoint.interval,
+        includePrePost = config.stockEndpoint.includePrePost,
+        events = config.stockEndpoint.events,
+        lang = config.stockEndpoint.lang
+    } = opts;
+
+    const period1 = new Date(start).getTime();
+    const period2 = new Date(end).getTime();
+
+    const url = `${urlBase}/${symbol}?period1=${period1 / 1000}&period2=${period2 / 1000}&interval=${interval}&includePrePost=${includePrePost}&events=${events}&lang=${lang}&region=CA`
     return url;
 }
 
@@ -69,4 +86,4 @@ const getFormattedData = async (data, ticker) => {
     return result;
 }
 
-module.exports = { getStock, getFormattedData, logMetaData };
+module.exports = { getStock, getFormattedData, logMetaData, validateQuery };
