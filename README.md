@@ -13,3 +13,6 @@ To set up the project, follow these steps:
 2.  `docker-compose down -v`
     or start later
 3.  `docker-compose start`
+
+
+4. `docker-compose down --remove-orphans`

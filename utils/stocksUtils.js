@@ -4,7 +4,7 @@ const Joi = require('joi');
 
 const config = require('../config/config.js');
 const { logger } = require('./logger.js')
-
+const { queryDatabase, closeDatabase } = require('./dbConnectionUtils.js');
 
 const schema = Joi.object({
     ticker: Joi.string().pattern(/^[A-Z0-9]{1,5}(\.[A-Z]{1,5})?$/).required(),
@@ -81,9 +81,8 @@ const getFormattedData = async (data, ticker) => {
             close: priceClose[i]
         })
     }
-    await logStock(ticker, result);
     logger.info(`Finished Formatting Data for: ${ticker}`);
     return result;
 }
 
-module.exports = { getStock, getFormattedData, logMetaData, validateQuery };
+module.exports = { getStock, getFormattedData, logMetaData, logStock, validateQuery };

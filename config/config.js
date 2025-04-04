@@ -12,4 +12,9 @@ module.exports = {
         events: 'div|split|earn',
         lang: 'en-CA',
     },
+    postgresDB: {
+        user: process.env.POSTGRES_USER || 'test',
+        password: process.env.POSTGRES_DB || 'password',
+        db: process.env.POSTGRES_PASSWORD || 'stock_db'
+    },
 };
