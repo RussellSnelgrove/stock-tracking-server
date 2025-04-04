@@ -4,7 +4,7 @@ const Joi = require('joi');
 
 const config = require('../config/config.js');
 const { logger } = require('./logger.js')
-const { queryDatabase, closeDatabase } = require('./dbConnectionUtils.js');
+const { insertUpdateDatabase } = require('./dbConnectionUtils.js');
 
 const schema = Joi.object({
     ticker: Joi.string().pattern(/^[A-Z0-9]{1,5}(\.[A-Z]{1,5})?$/).required(),
@@ -39,9 +39,10 @@ const insertPricesBulkToDB = async (symbol, data) => {
     const query = `
     INSERT INTO stocks_tracker.prices (ticker, date, open, high, low, close)
     VALUES 
-    ${data.map((_, i) =>
-        `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`
-    ).join(', ')}
+    ${data.map((_, i) => {
+        const base = i * 6;
+        return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6})`;
+    }).join(', ')}
     ON CONFLICT (ticker, date) DO NOTHING;
 `;
 
@@ -56,9 +57,8 @@ const insertPricesBulkToDB = async (symbol, data) => {
         ]);
     }, []);
 
-    const insertResult = await queryDatabase(query, insertParams);
-    logger.info(`Inserted prices in bulk: ${insertResult}`);
-    logger.info('Inserted prices completed');
+    const res = await insertUpdateDatabase(query, insertParams);
+    logger.info(`Inserted ${res.rowCount || 0} prices in bulk.`);
 };
 
 const insertOrUpdateStock = async (args, data) => {
@@ -81,7 +81,7 @@ const insertOrUpdateStock = async (args, data) => {
     `;
 
     const params = [symbol, new Date().toISOString(), new Date().toISOString(), regularMarketPrice, longName, exchangeName, fullExchangeName, currency];
-    await queryDatabase(query, params);
+    await insertUpdateDatabase(query, params);
     logger.info(`Stock data for ${symbol} has been inserted or updated.`);
 };
 
