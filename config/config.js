@@ -6,7 +6,7 @@ module.exports = {
     stockEndpoint: {
         urlBase: "https://query2.finance.yahoo.com/v8/finance/chart",
         start: '1970-01-01',
-        // end: 1739815200, // tmp, look into how to abstract this out
+        end: new Date().toLocaleDateString('en-CA'),
         interval: '1d',
         includePrePost: true,
         events: 'div|split|earn',

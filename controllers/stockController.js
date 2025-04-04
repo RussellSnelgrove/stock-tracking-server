@@ -12,8 +12,8 @@ const getStockBySymbol = asyncHandler(async (req, res) => {
     const ticker = req.query.ticker?.toUpperCase();
     const stockData = await getStock(ticker, req.query);
     const formattedData = await getFormattedData(stockData[0], ticker);
+    await logMetaData(req.query, stockData[0].meta);
     await logStock(ticker, formattedData);
-    await logMetaData(ticker, stockData[0].meta);
     res.send({ data: formattedData, metaData: stockData[0].meta });
 });
 

@@ -21,7 +21,7 @@ const getUrl = async (symbol, opts) => {
     const {
         urlBase = config.stockEndpoint.urlBase,
         start = config.stockEndpoint.start,
-        end = new Date().toLocaleDateString('en-CA'),
+        end = config.stockEndpoint.end,
         interval = config.stockEndpoint.interval,
         includePrePost = config.stockEndpoint.includePrePost,
         events = config.stockEndpoint.events,
@@ -35,14 +35,70 @@ const getUrl = async (symbol, opts) => {
     return url;
 }
 
-const logStock = async (symbol, stockObject) => {
-    const jsonString = JSON.stringify(stockObject, null, 2);
-    await fs.writeFile(`${config.stocksFolder}${symbol}.json`, jsonString);
+const insertPricesBulkToDB = async (symbol, data) => {
+    const query = `
+    INSERT INTO stocks_tracker.prices (ticker, date, open, high, low, close)
+    VALUES 
+    ${data.map((_, i) =>
+        `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`
+    ).join(', ')}
+    ON CONFLICT (ticker, date) DO NOTHING;
+`;
+
+    const insertParams = data.reduce((acc, entry) => {
+        return acc.concat([
+            symbol,
+            entry.date,
+            parseFloat(entry.open),
+            parseFloat(entry.high),
+            parseFloat(entry.low),
+            parseFloat(entry.close)
+        ]);
+    }, []);
+
+    const insertResult = await queryDatabase(query, insertParams);
+    logger.info(`Inserted prices in bulk: ${insertResult}`);
+    logger.info('Inserted prices completed');
+};
+
+const insertOrUpdateStock = async (args, data) => {
+    const {
+        symbol,
+        regularMarketPrice,
+        longName,
+        exchangeName,
+        fullExchangeName,
+        currency
+    } = data;
+    const query = `
+        INSERT INTO stocks_tracker.stocks (ticker, created_date, last_updated_date, market_price, stock_name, exchange, exchange_name, exchange_currency)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (ticker) 
+        DO UPDATE 
+        SET 
+            last_updated_date = EXCLUDED.last_updated_date,
+            market_price = EXCLUDED.market_price
+    `;
+
+    const params = [symbol, new Date().toISOString(), new Date().toISOString(), regularMarketPrice, longName, exchangeName, fullExchangeName, currency];
+    await queryDatabase(query, params);
+    logger.info(`Stock data for ${symbol} has been inserted or updated.`);
+};
+
+const logStock = async (symbol, data) => {
+    const jsonString = JSON.stringify(data, null, 2);
+    await Promise.all([
+        fs.writeFile(`${config.stocksFolder}${symbol}.json`, jsonString),
+        insertPricesBulkToDB(symbol, data),
+    ]);
 }
 
-const logMetaData = async (symbol, metaData) => {
-    const jsonString = JSON.stringify(metaData);
-    await fs.writeFile(`${config.stocksFolder}metaData/${symbol}.json`, jsonString);
+const logMetaData = async (args, metaData) => {
+    const jsonString = JSON.stringify(metaData, null, 2);
+    await Promise.all([
+        fs.writeFile(`${config.stocksFolder}metaData/${metaData.symbol}.json`, jsonString),
+        insertOrUpdateStock(args, metaData),
+    ]);
 }
 
 const getStock = async (ticker, query) => {
