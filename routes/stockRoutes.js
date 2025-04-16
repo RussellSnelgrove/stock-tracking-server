@@ -1,8 +1,10 @@
 const express = require('express');
-const { getStockBySymbol } = require('../controllers/stockController.js');
+const { getStockData, getStockPrediction, queryStockData } = require('../controllers/stockController.js');
 
 const stockRoutes = express.Router();
 
-stockRoutes.get('/symbol', getStockBySymbol);
+stockRoutes.get('/get-data', getStockData);
+stockRoutes.get('/predict', getStockPrediction);
+stockRoutes.get('/query-stock-data', queryStockData);
 
 module.exports = stockRoutes;

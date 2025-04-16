@@ -1,19 +1,19 @@
 const _ = require('lodash');
 
 const { asyncHandler } = require('../utils/asyncHandler.js');
-const { getStock, getFormattedData, logMetaData, logStock, validateQuery } = require('../utils/stocksUtils.js');
+const { getStock, getFormattedData, logMetaData, logStock, validateQuery, queryData, queryStockPriceData } = require('../utils/stocksUtils.js');
 const { getStockPredictions } = require('../utils/predictivePricingUtils.js');
 
 /**
- * @returns Returns stock details based on the ticker given
+ * @returns Returns stock details based on the symbol given
  */
-const getStockBySymbol = asyncHandler(async (req, res) => {
+const getStockData = asyncHandler(async (req, res) => {
     await validateQuery(req.query);
-    const ticker = req.query.ticker?.toUpperCase();
-    const stockData = await getStock(ticker, req.query);
-    const formattedData = await getFormattedData(stockData[0], ticker);
+    const symbol = req.query.symbol?.toUpperCase();
+    const stockData = await getStock(symbol, req.query);
+    const formattedData = await getFormattedData(stockData[0], symbol);
     await logMetaData(req.query, stockData[0].meta);
-    await logStock(ticker, formattedData);
+    await logStock(symbol, formattedData);
     res.send({ data: formattedData, metaData: stockData[0].meta });
 });
 
@@ -22,9 +22,20 @@ const getStockBySymbol = asyncHandler(async (req, res) => {
  */
 const getStockPrediction = asyncHandler(async (req, res) => {
     await validateQuery(req.query);
-    const ticker = req.query.ticker?.toUpperCase();
-    const formattedData = await getFormattedData(ticker);
-    const stockPricePredictions = await getStockPredictions(formattedData);
-    res.send({ stockPricePredictions });
+    const data = await queryStockPriceData(req.query);
+    const stockPricePredictions = await getStockPredictions(data);
+    res.send(data);
 });
-module.exports = { getStockBySymbol };
+
+/**
+ * @returns Returns all stored rows of a symbol
+ */
+const queryStockData = asyncHandler(async (req, res) => {
+    await validateQuery(req.query);
+    const data = await queryData(req.query);
+    // const formattedData = await getFormattedData(symbol);
+    // const stockPricePredictions = await getStockPredictions(formattedData);
+    res.send({ data });
+});
+
+module.exports = { getStockData, getStockPrediction, queryStockData };
